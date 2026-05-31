@@ -1,3 +1,5 @@
+#![deny(unsafe_code)]
+#![allow(clippy::needless_range_loop)]
 //! # lau-quantum-topology
 //!
 //! Topological quantum computing primitives for agent reasoning.

@@ -253,11 +253,11 @@ impl ModularTensorCategory {
                         if s_0l.norm() < 1e-10 {
                             continue;
                         }
-                        n_ijk = n_ijk + s[(i, l)] * s[(j, l)] * s[(k, l)].conj() / s_0l;
+                        n_ijk += s[(i, l)] * s[(j, l)] * s[(k, l)].conj() / s_0l;
                     }
 
                     // Compare with actual fusion rules
-                    let actual = self.get_fusion_coeff(&labels[i], &labels[j], &labels[k]);
+                    let actual = self.get_fusion_coeff(labels[i], labels[j], labels[k]);
                     // The Verlinde formula gives the actual coefficient as a real number
                     // (should be a non-negative integer)
                     let diff = (n_ijk.re - actual as f64).abs() + n_ijk.im.abs();
