@@ -1,50 +1,67 @@
 # lau-quantum-topology
 
-Topological quantum computing for agent reasoning — anyons, braids, TQFT, and modular tensor categories.
+Anyons are particles in 2D whose exchange isn't just a sign flip — it's a phase, and that phase depends on the *path* taken. Braid them, measure the result, and you've performed a computation that's topologically protected. Even a hermit crab scrambling the path can't change the outcome.
 
-## Overview
+This crate implements the mathematics: braid groups, anyon fusion rules, topological quantum gates, Jones polynomials, TQFT, and modular tensor categories.
 
-This crate implements topological quantum computing primitives that can be used for modeling agent reasoning as topological quantum computation. It provides:
+## The math in 60 seconds
 
-- **Anyon braiding**: Fibonacci anyons and Ising anyons with fusion rules, R-matrices, and F-matrices
-- **Braid group representation**: B_n generators σ_i with the braid group relations (Yang-Baxter equation, far commutativity) via the Burau representation
-- **Topological quantum gates**: CNOT, Hadamard, Pauli-X, Phase, and T-gates constructed from braiding
-- **Jones polynomial**: Computation from braids using the Burau representation
-- **TQFT axioms**: 2D and 3D topological quantum field theory functors (Frobenius algebras, Verlinde dimensions)
-- **Modular tensor categories**: Simple objects, fusion rules, S-matrix, T-matrix, quantum dimensions, Verlinde formula
-- **Agent reasoning**: Braided protocols for modeling topological quantum computation in agent systems
+The **braid group** Bₙ has generators σ₁...σₙ₋₁ (swapping adjacent strands) with relations σᵢσⱼ = σⱼσᵢ for |i-j|>1 and σᵢσᵢ₊₁σᵢ = σᵢ₊₁σᵢσᵢ₊₁. These aren't just abstract — they model anyon braiding in 2D topological phases.
 
-## Usage
+Key structures:
+
+- **Fibonacci anyons:** τ × τ = 1 + τ, the simplest universal anyon for TQC
+- **Ising anyons:** σ × σ = 1 + ψ, relevant to Majorana zero modes
+- **Jones polynomial:** V_L(t) computed from braid representations — a knot invariant from physics
+- **TQFT:** a functor from the cobordism category to Vect, assigning vector spaces to surfaces
+- **Modular tensor categories:** S-matrix, T-matrix, fusion rules, Verlinde formula
+
+References: Wang, *Topological Quantum Computation* (2010); Kitaev, *Fault-tolerant quantum computation by anyons* (2003)
+
+## Quick start
 
 ```rust
-use lau_quantum_topology::*;
+use lau_quantum_topology::{
+    AnyonType, BraidGroup, TopologicalGate, ModularTensorCategory
+};
 
-// Work with Fibonacci anyons
-let result = anyon::fuse_fibonacci(&AnyonType::Fibonacci, &AnyonType::Fibonacci);
-// τ × τ = 1 + τ
+// Fibonacci anyon fusion: τ ⊗ τ = 1 ⊕ τ
+let tau = AnyonType::Fibonacci;
+let fusion = tau.fuse(&tau); // {1: 1.0, τ: 1.0}
 
-// Create braids and verify relations
-let mut bw = braid::BraidWord::identity(4);
-bw.sigma(0).sigma(1).sigma(0);
-let b = braid::Braid::new(bw);
+// Create a braid group B₃
+let b3 = BraidGroup::new(3);
 
-// Compute Jones polynomial
-let v = jones::jones_trefoil(Complex::new(0.5, 0.0));
+// Build a braid: σ₁σ₂⁻¹σ₁
+let braid = b3.word(&[1, -2, 1]);
 
-// Modular tensor categories
-let fib = mtc::ModularTensorCategory::fibonacci();
-assert!(fib.verify_s_unitarity());
-assert!(fib.verify_verlinde());
+// Burau representation (gives a matrix)
+let repr = braid.burau_representation();
+
+// Compute Jones polynomial of the braid closure
+let jones = braid.jones_polynomial(-1.0);
+
+// Modular tensor category for Fibonacci anyons
+let mtc = ModularTensorCategory::fibonacci();
+assert!(mtc.verify_verlinde());    // Verlinde formula
+assert!(mtc.verify_modular_ST());  // (ST)³ = S²
 ```
 
-## Testing
+## Key types
 
-```bash
-cargo test
-```
+| Type | What it is |
+|------|-----------|
+| `AnyonType` | Fibonacci or Ising anyon with fusion rules and R/F matrices |
+| `BraidGroup` | Bₙ with generators, relations, and representations |
+| `TopologicalGate` | Quantum gates from braiding (Hadamard, CNOT, etc.) |
+| `JonesPolynomial` | V_L(t) from Burau or Kauffman bracket |
+| `TQFT` | 2D and 3D topological quantum field theory functor |
+| `ModularTensorCategory` | S/T matrices, fusion rules, quantum dimensions |
 
-70 tests covering braid relations, Jones polynomial values, fusion rules, S-matrix unitarity, Verlinde formula, and modular relations.
+## Contributing
 
-## License
+[Open an issue](https://github.com/SuperInstance/lau-quantum-topology/issues) or PR. We'd love:
 
-MIT
+- More anyon models (SU(2)ₖ for k>2)
+- Efficient braid simplification algorithms
+- Connections to condensed matter simulation
